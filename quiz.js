@@ -275,9 +275,9 @@ async function submitQuiz() {
     });
     const data = await res.json();
     const params = new URLSearchParams({ results: JSON.stringify(data.laptops), session: data.sessionId });
-    window.location.href = '/pages/results.html?' + params.toString();
+    window.location.href = '/results.html?' + params.toString();
   } catch (err) {
     const params = new URLSearchParams({ answers: JSON.stringify(answers) });
-    window.location.href = '/pages/results.html?' + params.toString();
+    window.location.href = '/results.html?' + params.toString();
   }
 }
