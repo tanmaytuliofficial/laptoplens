@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — LaptopLens Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/main.css">
+<style>
+.modal-overlay { position:fixed;inset:0;background:rgba(4,6,12,0.85);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px); }
+.modal-box { background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:28px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto; }
+.modal-title { font-family:var(--font-display);font-size:20px;font-weight:700;margin-bottom:20px; }
+.hidden { display:none!important; }
+.tag { display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600; }
+.tag-green { background:rgba(52,211,153,0.15);color:var(--green); }
+.tag-amber { background:rgba(251,191,36,0.15);color:var(--amber); }
+.img-preview { width:80px;height:60px;object-fit:contain;background:var(--surface);border-radius:6px; }
+.scrape-result { background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-top:16px; }
+</style>
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="sidebar-brand">◈ LaptopLens</div>
+    <a class="sidebar-link active" href="#" onclick="showSection('dashboard',this)">📊 Dashboard</a>
+    <a class="sidebar-link" href="#" onclick="showSection('laptops',this)">💻 Laptops</a>
+    <a class="sidebar-link" href="#" onclick="showSection('sessions',this)">👥 Sessions</a>
+    <a class="sidebar-link" href="#" onclick="showSection('clicks',this)">🖱️ Clicks</a>
+    <a class="sidebar-link" href="#" onclick="showSection('scraper',this)">🔄 Add from Amazon</a>
+    <div style="flex:1"></div>
+    <a class="sidebar-link" href="#" onclick="logout()">🚪 Logout</a>
+    <div style="padding:12px 20px;font-size:11px;color:var(--text3)">A product by Aetherix Group<br>© 2026 LaptopLens</div>
+  </aside>
+
+  <main class="admin-main">
+
+    <!-- DASHBOARD -->
+    <div id="sec-dashboard">
+      <div class="admin-title">Dashboard</div>
+      <div class="stats-row">
+        <div class="stat-box"><div class="stat-box-label">Total visitors</div><div class="stat-box-val" id="s-visitors">—</div><div class="stat-box-sub" id="s-visitors-d">loading...</div></div>
+        <div class="stat-box"><div class="stat-box-label">Quiz completions</div><div class="stat-box-val" id="s-quizzes">—</div></div>
+        <div class="stat-box"><div class="stat-box-label">Buy clicks</div><div class="stat-box-val" id="s-clicks">—</div></div>
+        <div class="stat-box"><div class="stat-box-label">Laptops in DB</div><div class="stat-box-val" id="s-laptops">—</div></div>
+      </div>
+      <div class="table-card">
+        <table class="data-table">
+          <thead><tr><th>Laptop</th><th>Views</th><th>Buy Clicks</th><th>Conv. Rate</th></tr></thead>
+          <tbody id="top-laptops-tbody"><tr><td colspan="4" style="color:var(--text3);text-align:center;padding:24px">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- LAPTOPS -->
+    <div id="sec-laptops" class="hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+        <div class="admin-title" style="margin:0">Laptops</div>
+        <button class="btn-primary" onclick="openAddModal()">+ Add laptop</button>
+      </div>
+      <div class="table-card">
+        <table class="data-table">
+          <thead><tr><th>Image</th><th>Name</th><th>Price</th><th>Score</th><th>Affiliate Link</th><th>Actions</th></tr></thead>
+          <tbody id="laptops-tbody"><tr><td colspan="6" style="color:var(--text3);text-align:center;padding:24px">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SESSIONS -->
+    <div id="sec-sessions" class="hidden">
+      <div class="admin-title">Recent Sessions</div>
+      <div class="table-card">
+        <table class="data-table">
+          <thead><tr><th>Time</th><th>Budget</th><th>Use case</th><th>Result laptops</th><th>IP</th></tr></thead>
+          <tbody id="sessions-tbody"><tr><td colspan="5" style="color:var(--text3);text-align:center;padding:24px">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CLICKS -->
+    <div id="sec-clicks" class="hidden">
+      <div class="admin-title">Click Events</div>
+      <div class="table-card">
+        <table class="data-table">
+          <thead><tr><th>Time</th><th>Laptop</th><th>Action</th><th>Session</th></tr></thead>
+          <tbody id="clicks-tbody"><tr><td colspan="4" style="color:var(--text3);text-align:center;padding:24px">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SCRAPER -->
+    <div id="sec-scraper" class="hidden">
+      <div class="admin-title">Add laptop from Amazon</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px;max-width:600px;">
+        <p style="color:var(--text2);font-size:14px;margin-bottom:16px;">Paste an Amazon product URL. We'll fetch the title, image, price, and specs automatically. You can then add your affiliate link before saving.</p>
+        <div class="form-group">
+          <label>Amazon product URL</label>
+          <input type="url" id="scrapeUrl" placeholder="https://www.amazon.in/dp/XXXXXXXX" style="width:100%">
+        </div>
+        <button class="btn-primary" onclick="scrapeAmazon()">Fetch laptop details →</button>
+        <div id="scrapeResult" class="hidden scrape-result">
+          <div style="display:flex;gap:16px;margin-bottom:16px;">
+            <img id="scrapeImg" class="img-preview" src="" alt="">
+            <div><div id="scrapeName" style="font-weight:600;margin-bottom:4px;"></div><div id="scrapePrice" style="color:var(--green);font-size:14px;"></div></div>
+          </div>
+          <div class="form-group"><label>Your affiliate link (Amazon Associates tag)</label><input type="url" id="affLink" placeholder="https://amzn.to/XXXXX or paste with ?tag=yourtag-21" style="width:100%"></div>
+          <div class="form-group"><label>Tags (comma separated: study,coding,mid,15,windows)</label><input type="text" id="scrapeTags" placeholder="study,coding,mid,15,windows" style="width:100%"></div>
+          <button class="btn-primary" onclick="saveLaptop()" style="margin-top:8px">Save to database →</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- EDIT MODAL -->
+<div id="editModal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-title">Edit laptop</div>
+    <input type="hidden" id="edit-id">
+    <div class="form-group"><label>Name</label><input type="text" id="edit-name" style="width:100%"></div>
+    <div class="form-group"><label>Price (₹)</label><input type="number" id="edit-price" style="width:100%"></div>
+    <div class="form-group"><label>Image URL</label><input type="url" id="edit-img" style="width:100%"></div>
+    <div class="form-group"><label>Amazon URL (original)</label><input type="url" id="edit-amazon" style="width:100%"></div>
+    <div class="form-group"><label>Affiliate URL (your link with tag)</label><input type="url" id="edit-affiliate" style="width:100%"></div>
+    <div class="form-group"><label>Tags</label><input type="text" id="edit-tags" style="width:100%" placeholder="study,coding,mid,15,windows"></div>
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button class="btn-primary" onclick="saveEdit()">Save changes →</button>
+      <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TOKEN = localStorage.getItem('ll_admin_token');
+if (!TOKEN) window.location.href = '/pages/admin-login.html';
+
+const headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN };
+
+function showSection(id, el) {
+  document.querySelectorAll('[id^="sec-"]').forEach(s => s.classList.add('hidden'));
+  document.getElementById('sec-' + id).classList.remove('hidden');
+  document.querySelectorAll('.sidebar-link').forEach(a => a.classList.remove('active'));
+  el.classList.add('active');
+  if (id === 'laptops') loadLaptops();
+  if (id === 'sessions') loadSessions();
+  if (id === 'clicks') loadClicks();
+}
+
+function logout() {
+  localStorage.removeItem('ll_admin_token');
+  window.location.href = '/pages/admin-login.html';
+}
+
+async function api(path, method='GET', body=null) {
+  const opts = { method, headers };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch('/api/admin' + path, opts);
+  if (r.status === 401) { logout(); return null; }
+  return r.json();
+}
+
+async function loadDashboard() {
+  const data = await api('/stats');
+  if (!data) return;
+  document.getElementById('s-visitors').textContent = (data.visitors || 0).toLocaleString('en-IN');
+  document.getElementById('s-quizzes').textContent = (data.quizzes || 0).toLocaleString('en-IN');
+  document.getElementById('s-clicks').textContent = (data.clicks || 0).toLocaleString('en-IN');
+  document.getElementById('s-laptops').textContent = data.laptops || 0;
+  document.getElementById('s-visitors-d').textContent = `+${data.visitorsToday || 0} today`;
+  const tbody = document.getElementById('top-laptops-tbody');
+  tbody.innerHTML = (data.topLaptops || []).map(l => `
+    <tr>
+      <td>${l.name}</td>
+      <td>${l.views || 0}</td>
+      <td><span class="tag tag-green">${l.buys || 0}</span></td>
+      <td>${l.views ? ((l.buys / l.views) * 100).toFixed(1) + '%' : '—'}</td>
+    </tr>`).join('') || '<tr><td colspan="4" style="color:var(--text3);text-align:center;padding:20px">No data yet</td></tr>';
+}
+
+async function loadLaptops() {
+  const data = await api('/laptops');
+  if (!data) return;
+  const tbody = document.getElementById('laptops-tbody');
+  tbody.innerHTML = (data.laptops || []).map(l => `
+    <tr>
+      <td><img class="img-preview" src="${l.image_url}" alt="${l.name}" onerror="this.src='https://placehold.co/80x60/1a2235/638cff?text=?'"></td>
+      <td style="font-weight:500">${l.name}</td>
+      <td>₹${Number(l.price).toLocaleString('en-IN')}</td>
+      <td>${l.match_score || '—'}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+        ${l.affiliate_url ? `<span class="tag tag-green">Set</span>` : `<span class="tag tag-amber">Not set</span>`}
+      </td>
+      <td><button class="btn-ghost" style="padding:6px 12px;font-size:13px" onclick="openEdit(${JSON.stringify(l).replace(/"/g,'&quot;')})">Edit</button></td>
+    </tr>`).join('') || '<tr><td colspan="6" style="color:var(--text3);text-align:center;padding:20px">No laptops yet. Add from Amazon!</td></tr>';
+}
+
+async function loadSessions() {
+  const data = await api('/sessions');
+  const tbody = document.getElementById('sessions-tbody');
+  tbody.innerHTML = (data?.sessions || []).map(s => {
+    const a = JSON.parse(s.quiz_answers || '{}');
+    return `<tr>
+      <td style="font-size:12px;color:var(--text3)">${new Date(s.created_at).toLocaleString('en-IN')}</td>
+      <td>${a.budget ? '₹'+Number(a.budget).toLocaleString('en-IN') : '—'}</td>
+      <td>${a.usecase || '—'}</td>
+      <td style="font-size:12px">${s.matched_laptops || '—'}</td>
+      <td style="font-size:12px;color:var(--text3)">${s.ip || '—'}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="5" style="color:var(--text3);text-align:center;padding:20px">No sessions yet</td></tr>';
+}
+
+async function loadClicks() {
+  const data = await api('/clicks');
+  const tbody = document.getElementById('clicks-tbody');
+  tbody.innerHTML = (data?.clicks || []).map(c => `
+    <tr>
+      <td style="font-size:12px;color:var(--text3)">${new Date(c.created_at).toLocaleString('en-IN')}</td>
+      <td>${c.laptop_name || c.laptop_id}</td>
+      <td><span class="tag ${c.action==='buy'?'tag-green':'tag-amber'}">${c.action}</span></td>
+      <td style="font-size:12px;color:var(--text3)">${c.session_id || '—'}</td>
+    </tr>`).join('') || '<tr><td colspan="4" style="color:var(--text3);text-align:center;padding:20px">No clicks yet</td></tr>';
+}
+
+function openEdit(laptop) {
+  document.getElementById('edit-id').value = laptop.id;
+  document.getElementById('edit-name').value = laptop.name;
+  document.getElementById('edit-price').value = laptop.price;
+  document.getElementById('edit-img').value = laptop.image_url || '';
+  document.getElementById('edit-amazon').value = laptop.amazon_url || '';
+  document.getElementById('edit-affiliate').value = laptop.affiliate_url || '';
+  document.getElementById('edit-tags').value = laptop.tags || '';
+  document.getElementById('editModal').classList.remove('hidden');
+}
+
+function closeModal() { document.getElementById('editModal').classList.add('hidden'); }
+
+async function saveEdit() {
+  const id = document.getElementById('edit-id').value;
+  const body = {
+    name: document.getElementById('edit-name').value,
+    price: parseInt(document.getElementById('edit-price').value),
+    image_url: document.getElementById('edit-img').value,
+    amazon_url: document.getElementById('edit-amazon').value,
+    affiliate_url: document.getElementById('edit-affiliate').value,
+    tags: document.getElementById('edit-tags').value
+  };
+  await api('/laptops/' + id, 'PUT', body);
+  closeModal();
+  loadLaptops();
+}
+
+async function scrapeAmazon() {
+  const url = document.getElementById('scrapeUrl').value.trim();
+  if (!url) return alert('Please enter a URL');
+  const res = await api('/scrape', 'POST', { url });
+  if (!res || res.error) return alert(res?.error || 'Scrape failed');
+  document.getElementById('scrapeImg').src = res.image || '';
+  document.getElementById('scrapeName').textContent = res.name || '';
+  document.getElementById('scrapePrice').textContent = res.price ? '₹' + res.price.toLocaleString('en-IN') : '';
+  document.getElementById('affLink').value = '';
+  document.getElementById('scrapeTags').value = '';
+  document.getElementById('scrapeResult').classList.remove('hidden');
+  document.getElementById('scrapeResult').dataset.scraped = JSON.stringify(res);
+}
+
+async function saveLaptop() {
+  const scraped = JSON.parse(document.getElementById('scrapeResult').dataset.scraped || '{}');
+  const body = {
+    ...scraped,
+    affiliate_url: document.getElementById('affLink').value,
+    tags: document.getElementById('scrapeTags').value
+  };
+  const res = await api('/laptops', 'POST', body);
+  if (res?.id) {
+    alert('Laptop saved! ✓');
+    document.getElementById('scrapeResult').classList.add('hidden');
+    document.getElementById('scrapeUrl').value = '';
+  }
+}
+
+function openAddModal() { showSection('scraper', document.querySelector('[onclick*="scraper"]')); }
+
+loadDashboard();
+</script>
+</body>
+</html>
