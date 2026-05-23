@@ -6,9 +6,6 @@
   <title>LaptopLens Admin — Login</title>
   <meta name="robots" content="noindex, nofollow"/>
   <link rel="stylesheet" href="style.css"/>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <style>
     .login-error {
       color: #e07e7e;
@@ -103,37 +100,6 @@ function handleLogin() {
   }
 }
 </script>
-<script>
-      btn.disabled = true;
-      btn.textContent = "Signing in...";
-      errorEl.classList.remove("visible");
 
-      try {
-        await auth.signInWithEmailAndPassword(email, password);
-        window.location.href = "dashboard.html";
-      } catch (err) {
-        const messages = {
-          "auth/user-not-found": "No admin account found with this email.",
-          "auth/wrong-password": "Incorrect password.",
-          "auth/invalid-email": "Please enter a valid email.",
-          "auth/too-many-requests": "Too many attempts. Please wait before trying again.",
-        };
-        showError(messages[err.code] || "Login failed. Check credentials.");
-        btn.disabled = false;
-        btn.textContent = "Sign In";
-      }
-    }
-
-    function showError(msg) {
-      const el = document.getElementById("loginError");
-      el.textContent = msg;
-      el.classList.add("visible");
-    }
-
-    // If already logged in, redirect
-    auth.onAuthStateChanged(user => {
-      if (user) window.location.href = "dashboard.html";
-    });
-  </script>
 </body>
 </html>
