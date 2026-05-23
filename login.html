@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LaptopLens Admin — Login</title>
+  <meta name="robots" content="noindex, nofollow"/>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    .login-error {
+      color: #e07e7e;
+      font-size: 0.85rem;
+      margin-top: 12px;
+      padding: 10px 14px;
+      background: rgba(224,126,126,0.1);
+      border: 1px solid rgba(224,126,126,0.2);
+      border-radius: var(--radius-sm);
+      display: none;
+    }
+    .login-error.visible { display: block; }
+    .form-group { margin-bottom: 20px; }
+    .login-submit {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
+      color: #0a0a0a;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1rem;
+      border-radius: var(--radius-md);
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .login-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 28px var(--accent-glow); }
+    .login-submit:disabled { opacity: 0.5; pointer-events: none; }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+      transition: color 0.2s ease;
+    }
+    .back-link:hover { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="login-page">
+    <div class="login-box">
+      <a href="../index.html" class="back-link">← Back to site</a>
+      <div class="login-logo">LaptopLens<span style="color:var(--accent)">.</span></div>
+      <p class="login-sub">Admin Dashboard — Restricted Access</p>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="admin@aetherix.com" autocomplete="email"/>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+
+      <div class="login-error" id="loginError"></div>
+
+      <button class="login-submit" id="loginBtn" onclick="handleLogin()">
+        Sign In
+      </button>
+
+      <p style="font-size:0.78rem;color:var(--text-muted);margin-top:20px;text-align:center">
+        This panel is for authorized administrators only.
+      </p>
+    </div>
+  </div>
+
+  <script src="../js/firebase-config.js"></script>
+  <script>
+    // Allow Enter key to submit
+    document.addEventListener("keydown", e => {
+      if (e.key === "Enter") handleLogin();
+    });
+
+    async function handleLogin() {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const btn = document.getElementById("loginBtn");
+      const errorEl = document.getElementById("loginError");
+
+      if (!email || !password) {
+        showError("Please enter email and password.");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Signing in...";
+      errorEl.classList.remove("visible");
+
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
+        window.location.href = "dashboard.html";
+      } catch (err) {
+        const messages = {
+          "auth/user-not-found": "No admin account found with this email.",
+          "auth/wrong-password": "Incorrect password.",
+          "auth/invalid-email": "Please enter a valid email.",
+          "auth/too-many-requests": "Too many attempts. Please wait before trying again.",
+        };
+        showError(messages[err.code] || "Login failed. Check credentials.");
+        btn.disabled = false;
+        btn.textContent = "Sign In";
+      }
+    }
+
+    function showError(msg) {
+      const el = document.getElementById("loginError");
+      el.textContent = msg;
+      el.classList.add("visible");
+    }
+
+    // If already logged in, redirect
+    auth.onAuthStateChanged(user => {
+      if (user) window.location.href = "dashboard.html";
+    });
+  </script>
+</body>
+</html>

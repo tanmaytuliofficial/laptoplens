@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- ── SEO Meta Tags ── -->
+  <title>LaptopLens — Find Your Perfect Laptop | AI-Powered Quiz</title>
+  <meta name="description" content="Answer 12 questions and get personalized laptop recommendations with match percentages. Powered by AI scoring. Free and unbiased." />
+  <meta name="keywords" content="laptop recommendation, best laptop 2024, laptop quiz, buy laptop India, gaming laptop, MacBook vs Windows" />
+  <meta name="author" content="Aetherix Group" />
+  <meta name="robots" content="index, follow" />
+
+  <!-- ── Open Graph (Social sharing) ── -->
+  <meta property="og:title" content="LaptopLens — Find Your Perfect Laptop" />
+  <meta property="og:description" content="AI-powered quiz gives you personalized laptop recommendations with match percentages." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://laptoplens.com" />
+
+  <!-- ── Twitter Card ── -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="LaptopLens — Find Your Perfect Laptop" />
+
+  <!-- ── Favicon ── -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💻</text></svg>" />
+
+  <!-- ── Styles ── -->
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- ── Firebase (v9 compat mode — easiest for beginners) ── -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+  <!-- ── Schema.org Structured Data (SEO) ── -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "LaptopLens",
+    "description": "AI-powered laptop recommendation quiz",
+    "applicationCategory": "ProductFinder",
+    "operatingSystem": "Web Browser",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "INR" }
+  }
+  </script>
+</head>
+
+<body>
+
+  <!-- ══════════════════════════════════════════
+       GLOBAL NAVIGATION
+  ══════════════════════════════════════════ -->
+  <nav class="nav">
+    <div class="nav-logo">
+      <span>LaptopLens</span><span class="dot">.</span>
+    </div>
+    <div class="nav-actions">
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+        <!-- Icon injected by JS -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="4"/>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2"/>
+        </svg>
+      </button>
+      <a href="admin/login.html" class="nav-btn nav-btn-ghost">Admin</a>
+      <button class="nav-btn nav-btn-accent" id="navStartQuiz">Start Quiz</button>
+    </div>
+  </nav>
+
+  <!-- ══════════════════════════════════════════
+       PAGE 1: LANDING
+  ══════════════════════════════════════════ -->
+  <div id="page-landing">
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-bg">
+        <div class="hero-grid"></div>
+        <div class="hero-orb hero-orb-1"></div>
+        <div class="hero-orb hero-orb-2"></div>
+      </div>
+
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="pulse"></span>
+          <span>Powered by Smart Matching • Aetherix Group</span>
+        </div>
+
+        <h1 class="hero-title">
+          Find Your<br/>
+          <span class="accent-word">Perfect</span> <span class="stroke-word">Laptop</span>
+        </h1>
+
+        <p class="hero-subtitle">
+          Answer 12 questions. Our matching engine compares your needs against 100+ laptops and shows you exactly what fits — with reasons.
+        </p>
+
+        <div class="hero-cta-group">
+          <button class="btn-primary" id="startQuiz">
+            Start the Quiz
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+          <a href="#how-it-works" class="btn-secondary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px">
+              <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
+            </svg>
+            How it works
+          </a>
+        </div>
+
+        <div class="hero-stats">
+          <div class="stat-item">
+            <span class="stat-number">100+</span>
+            <span class="stat-label">Laptops</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-number">12</span>
+            <span class="stat-label">Questions</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-number">~3min</span>
+            <span class="stat-label">Time needed</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-number">Free</span>
+            <span class="stat-label">Always</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <div id="how-it-works">
+      <div class="section">
+        <span class="section-label">The Process</span>
+        <h2 class="section-title">How LaptopLens Works</h2>
+        <p class="section-sub">No sign-up needed. Just answer honestly and we handle the math.</p>
+
+        <div class="how-steps">
+          <div class="step-card">
+            <div class="step-num">01</div>
+            <div class="step-title">Answer the Quiz</div>
+            <p class="step-desc">12 questions about your budget, use case, gaming needs, battery preference, and more.</p>
+          </div>
+          <div class="step-card">
+            <div class="step-num">02</div>
+            <div class="step-title">Matching Engine Runs</div>
+            <p class="step-desc">Our weighted scoring algorithm compares your answers against each laptop's capability profile.</p>
+          </div>
+          <div class="step-card">
+            <div class="step-num">03</div>
+            <div class="step-title">Get Ranked Results</div>
+            <p class="step-desc">See your top matches with exact % scores, pros/cons, specs, and why each laptop fits you.</p>
+          </div>
+          <div class="step-card">
+            <div class="step-num">04</div>
+            <div class="step-title">Buy With Confidence</div>
+            <p class="step-desc">Click Buy Now to go directly to Amazon. Our affiliate links support us at no extra cost to you.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+      <div>
+        <div class="footer-brand">LaptopLens<span>.</span></div>
+        <div class="footer-copy" style="margin-top:4px">A product of Aetherix Group</div>
+      </div>
+      <div class="footer-copy">
+        © 2024 Aetherix Group. Affiliate links may earn commission.
+      </div>
+      <div class="footer-links">
+        <a href="#">Privacy</a>
+        <a href="#">Affiliate Disclosure</a>
+        <a href="admin/login.html">Admin</a>
+      </div>
+    </footer>
+
+  </div><!-- /page-landing -->
+
+
+  <!-- ══════════════════════════════════════════
+       PAGE 2: QUIZ
+  ══════════════════════════════════════════ -->
+  <div id="page-quiz" class="hidden">
+    <div class="quiz-page">
+      <div class="quiz-container">
+
+        <!-- Progress bar -->
+        <div class="quiz-progress-wrap">
+          <div class="quiz-progress-meta">
+            <span class="quiz-step-label" id="stepLabel">Question 1 of 12</span>
+            <span class="quiz-step-count">11 more to go</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width:0%"></div>
+          </div>
+        </div>
+
+        <!-- Question content (injected by JS) -->
+        <div class="question-card" id="quizContent">
+          <!-- Questions rendered here dynamically -->
+        </div>
+
+        <!-- Navigation buttons -->
+        <div class="quiz-nav">
+          <button class="btn-quiz-back" id="quizBack" style="visibility:hidden">← Back</button>
+          <button class="btn-quiz-next" id="quizNext" disabled>Next →</button>
+        </div>
+
+      </div>
+    </div>
+  </div><!-- /page-quiz -->
+
+
+  <!-- ══════════════════════════════════════════
+       PAGE 3: ANALYZING (Loading screen)
+  ══════════════════════════════════════════ -->
+  <div id="page-analyzing" class="hidden">
+    <div class="analyzing-screen">
+      <div class="analyzing-orb"></div>
+      <div class="analyzing-title">Analyzing Your Profile</div>
+      <p class="analyzing-sub">Finding laptops that match your exact needs...</p>
+
+      <ul class="analyzing-steps">
+        <li class="analyzing-step">
+          <span class="step-dot"></span>
+          Loading laptop database...
+        </li>
+        <li class="analyzing-step">
+          <span class="step-dot"></span>
+          Analyzing your requirements...
+        </li>
+        <li class="analyzing-step">
+          <span class="step-dot"></span>
+          Running compatibility scoring...
+        </li>
+        <li class="analyzing-step">
+          <span class="step-dot"></span>
+          Ranking matches...
+        </li>
+        <li class="analyzing-step">
+          <span class="step-dot"></span>
+          Generating personalized reasons...
+        </li>
+      </ul>
+    </div>
+  </div><!-- /page-analyzing -->
+
+
+  <!-- ══════════════════════════════════════════
+       PAGE 4: RESULTS
+  ══════════════════════════════════════════ -->
+  <div id="page-results" class="hidden">
+    <div class="results-page">
+
+      <div class="results-header">
+        <div class="section-label">Your Results</div>
+        <h2 class="results-title">Your Top Laptop Matches</h2>
+        <p class="results-sub">Ranked by compatibility with your profile. Higher % = better match.</p>
+        <button class="results-retake" id="retakeQuiz">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
+          </svg>
+          Retake Quiz
+        </button>
+      </div>
+
+      <!-- Search + Filters -->
+      <div class="results-controls">
+        <div class="search-input-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+          </svg>
+          <input type="text" class="search-input" id="searchInput" placeholder="Search laptops..." />
+        </div>
+        <button class="filter-btn" data-filter="gaming" onclick="filterByCategory('gaming')">🎮 Gaming</button>
+        <button class="filter-btn" data-filter="ultrabook" onclick="filterByCategory('ultrabook')">🪶 Ultrabook</button>
+        <button class="filter-btn" data-filter="student" onclick="filterByCategory('student')">📚 Student</button>
+        <button class="filter-btn" data-filter="apple" onclick="filterByCategory('apple')">🍎 Apple</button>
+      </div>
+
+      <!-- Laptop cards grid -->
+      <div class="laptops-grid" id="laptopsGrid">
+        <!-- Cards injected by JS -->
+      </div>
+
+      <!-- CTA to retake -->
+      <div style="text-align:center;margin-top:64px;padding-top:48px;border-top:1px solid var(--border)">
+        <div class="section-label">Not satisfied?</div>
+        <h3 style="font-family:var(--font-display);font-size:1.6rem;font-weight:800;margin-bottom:12px">Tweak your answers</h3>
+        <p class="text-secondary" style="margin-bottom:24px">Small changes in budget or use case can reveal completely different recommendations.</p>
+        <button class="btn-primary" onclick="startQuiz()">
+          Retake Quiz
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:18px;height:18px">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Footer inside results -->
+      <footer style="margin-top:64px">
+        <div>
+          <div class="footer-brand">LaptopLens<span>.</span></div>
+          <div class="footer-copy" style="margin-top:4px">Aetherix Group</div>
+        </div>
+        <div class="footer-copy">Affiliate links support us. Prices may vary.</div>
+        <div class="footer-links">
+          <a href="#">Privacy</a>
+          <a href="#">Affiliate Disclosure</a>
+        </div>
+      </footer>
+
+    </div>
+  </div><!-- /page-results -->
+
+
+  <!-- ── Toast notification (injected by JS if needed) ── -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ── Scripts (order matters!) ── -->
+  <script src="js/firebase-config.js"></script>
+  <script src="js/quiz-engine.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LaptopLens Admin — Dashboard</title>
+  <meta name="robots" content="noindex, nofollow"/>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <style>
+    body { overflow: hidden; }
+    .admin-layout { height: 100vh; }
+    .admin-main { height: 100vh; overflow-y: auto; }
+    .laptop-thumb { width: 48px; height: 36px; object-fit: cover; border-radius: 4px; }
+    .score-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 100px;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid rgba(200,240,96,0.2);
+    }
+    .delete-btn { color: #e07e7e; background: transparent; font-size: 0.8rem; border: none; cursor: pointer; padding: 4px 10px; border-radius: 4px; transition: background 0.2s; }
+    .delete-btn:hover { background: rgba(224,126,126,0.1); }
+    .edit-btn { color: var(--accent); background: transparent; font-size: 0.8rem; border: none; cursor: pointer; padding: 4px 10px; border-radius: 4px; transition: background 0.2s; }
+    .edit-btn:hover { background: var(--accent-dim); }
+    .section-tab { display: none; }
+    .section-tab.active { display: block; }
+    .mobile-menu-btn {
+      display: none;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 768px) {
+      body { overflow: auto; }
+      .admin-layout { display: block; }
+      .admin-main { height: auto; overflow-y: visible; }
+      .mobile-menu-btn { display: block; }
+    }
+    .form-actions { display: flex; gap: 12px; margin-top: 28px; justify-content: flex-end; }
+    .img-preview { width: 100%; height: 140px; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 8px; display: none; }
+    .img-preview.visible { display: block; }
+    .click-count { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-secondary); }
+  </style>
+</head>
+<body>
+
+<div class="admin-layout">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="admin-sidebar" id="adminSidebar">
+    <div class="admin-logo">LaptopLens<span style="color:var(--accent)">.</span></div>
+    <div class="admin-logo-sub">Admin Dashboard · Aetherix Group</div>
+
+    <div class="admin-nav-label">Navigation</div>
+    <div class="admin-nav-item active" onclick="switchTab('overview')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Overview
+    </div>
+    <div class="admin-nav-item" onclick="switchTab('laptops')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      Manage Laptops
+    </div>
+    <div class="admin-nav-item" onclick="switchTab('add')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+      Add Laptop
+    </div>
+    <div class="admin-nav-item" onclick="switchTab('analytics')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+      Analytics
+    </div>
+
+    <div class="admin-nav-label" style="margin-top:auto">Account</div>
+    <div class="admin-nav-item" onclick="handleLogout()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Logout
+    </div>
+  </aside>
+
+  <!-- ── MAIN CONTENT ── -->
+  <main class="admin-main">
+    <div id="adminContent" style="padding:40px;">
+
+      <!-- ══ OVERVIEW TAB ══ -->
+      <div class="section-tab active" id="tab-overview">
+        <div class="admin-page-header">
+          <div>
+            <div class="admin-page-title">Overview</div>
+            <div class="admin-page-sub">LaptopLens platform summary</div>
+          </div>
+          <span id="adminUserEmail" class="font-mono" style="font-size:0.78rem;color:var(--text-muted)"></span>
+        </div>
+
+        <div class="admin-stats-grid" id="overviewStats">
+          <div class="admin-stat">
+            <div class="admin-stat-num" id="statTotal">—</div>
+            <div class="admin-stat-label">Total Laptops</div>
+          </div>
+          <div class="admin-stat">
+            <div class="admin-stat-num" id="statClicks">—</div>
+            <div class="admin-stat-label">Affiliate Clicks</div>
+          </div>
+          <div class="admin-stat">
+            <div class="admin-stat-num" id="statBrands">—</div>
+            <div class="admin-stat-label">Brands Covered</div>
+          </div>
+          <div class="admin-stat">
+            <div class="admin-stat-num" id="statAvgPrice">—</div>
+            <div class="admin-stat-label">Avg. Price</div>
+          </div>
+        </div>
+
+        <div style="padding:32px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);">
+          <h3 style="font-family:var(--font-display);font-weight:700;margin-bottom:16px;">Quick Actions</h3>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <button class="btn-admin btn-admin-primary" onclick="switchTab('add')">+ Add New Laptop</button>
+            <button class="btn-admin btn-admin-ghost" onclick="switchTab('laptops')">View All Laptops</button>
+            <a href="../index.html" target="_blank" class="btn-admin btn-admin-ghost" style="display:inline-flex;align-items:center;gap:8px;">
+              ↗ View Live Site
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ LAPTOPS LIST TAB ══ -->
+      <div class="section-tab" id="tab-laptops">
+        <div class="admin-page-header">
+          <div>
+            <div class="admin-page-title">Manage Laptops</div>
+            <div class="admin-page-sub" id="laptopCountLabel">Loading...</div>
+          </div>
+          <button class="btn-admin btn-admin-primary" onclick="switchTab('add')">+ Add Laptop</button>
+        </div>
+
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Brand</th>
+                <th>Price</th>
+                <th>Gaming</th>
+                <th>Battery</th>
+                <th>Coding</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="laptopTableBody">
+              <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted)">Loading laptops...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══ ADD/EDIT LAPTOP TAB ══ -->
+      <div class="section-tab" id="tab-add">
+        <div class="admin-page-header">
+          <div>
+            <div class="admin-page-title" id="formTitle">Add New Laptop</div>
+            <div class="admin-page-sub">Fill in all details. Scores are on a scale of 1–10.</div>
+          </div>
+          <button class="btn-admin btn-admin-ghost" onclick="resetForm();switchTab('laptops')">← Back</button>
+        </div>
+
+        <div class="admin-form">
+          <input type="hidden" id="editId"/>
+
+          <!-- Basic Info -->
+          <h3 class="font-display" style="font-weight:700;margin-bottom:20px;">Basic Information</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Laptop Name *</label>
+              <input type="text" id="fName" placeholder="e.g. MacBook Air M3"/>
+            </div>
+            <div class="form-group">
+              <label>Brand *</label>
+              <input type="text" id="fBrand" placeholder="e.g. Apple"/>
+            </div>
+            <div class="form-group">
+              <label>Price (₹) *</label>
+              <input type="number" id="fPrice" placeholder="e.g. 114900"/>
+            </div>
+            <div class="form-group">
+              <label>Amazon Affiliate Link *</label>
+              <input type="url" id="fLink" placeholder="https://amzn.to/..."/>
+            </div>
+            <div class="form-group full-width">
+              <label>Image URL</label>
+              <input type="url" id="fImage" placeholder="https://... or leave blank for emoji placeholder" oninput="previewImage(this.value)"/>
+              <img class="img-preview" id="imgPreview" alt="Preview"/>
+            </div>
+          </div>
+
+          <!-- Specs -->
+          <h3 class="font-display" style="font-weight:700;margin:28px 0 20px;">Specifications</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>CPU</label>
+              <input type="text" id="fCpu" placeholder="e.g. Apple M3 / Intel i7-13700H"/>
+            </div>
+            <div class="form-group">
+              <label>GPU</label>
+              <input type="text" id="fGpu" placeholder="e.g. RTX 4060 / Integrated"/>
+            </div>
+            <div class="form-group">
+              <label>RAM</label>
+              <input type="text" id="fRam" placeholder="e.g. 16GB DDR5"/>
+            </div>
+            <div class="form-group">
+              <label>Storage</label>
+              <input type="text" id="fStorage" placeholder="e.g. 512GB / 1TB"/>
+            </div>
+            <div class="form-group">
+              <label>Display</label>
+              <input type="text" id="fDisplay" placeholder="e.g. 14-inch 2.8K OLED"/>
+            </div>
+            <div class="form-group">
+              <label>Weight (kg)</label>
+              <input type="text" id="fWeight" placeholder="e.g. 1.24"/>
+            </div>
+          </div>
+
+          <!-- Scoring -->
+          <h3 class="font-display" style="font-weight:700;margin:28px 0 8px;">Capability Scores (1–10)</h3>
+          <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:20px;">
+            These power the matching engine. Be honest — users depend on accurate scores.
+          </p>
+          <div class="score-grid">
+            <div class="score-item">
+              <div class="score-label-row">
+                <span>Gaming</span>
+                <span class="score-val" id="gaming-val">5</span>
+              </div>
+              <input type="range" class="range-slider" min="1" max="10" value="5" id="score-gaming"
+                     oninput="document.getElementById('gaming-val').textContent=this.value"/>
+            </div>
+            <div class="score-item">
+              <div class="score-label-row">
+                <span>Battery Life</span>
+                <span class="score-val" id="battery-val">5</span>
+              </div>
+              <input type="range" class="range-slider" min="1" max="10" value="5" id="score-battery"
+                     oninput="document.getElementById('battery-val').textContent=this.value"/>
+            </div>
+            <div class="score-item">
+              <div class="score-label-row">
+                <span>Coding / Dev</span>
+                <span class="score-val" id="coding-val">5</span>
+              </div>
+              <input type="range" class="range-slider" min="1" max="10" value="5" id="score-coding"
+                     oninput="document.getElementById('coding-val').textContent=this.value"/>
+            </div>
+            <div class="score-item">
+              <div class="score-label-row">
+                <span>Video Editing</span>
+                <span class="score-val" id="editing-val">5</span>
+              </div>
+              <input type="range" class="range-slider" min="1" max="10" value="5" id="score-editing"
+                     oninput="document.getElementById('editing-val').textContent=this.value"/>
+            </div>
+            <div class="score-item">
+              <div class="score-label-row">
+                <span>Portability</span>
+                <span class="score-val" id="portability-val">5</span>
+              </div>
+              <input type="range" class="range-slider" min="1" max="10" value="5" id="score-portability"
+                     oninput="document.getElementById('portability-val').textContent=this.value"/>
+            </div>
+            <div class="score-item">
+              <div class="score-label-row">
+                <span>Student Use</span>
+                <span class="score-val" id="student-val">5</span>
+              </div>
+              <input type="range" class="range-slider" min="1" max="10" value="5" id="score-student"
+                     oninput="document.getElementById('student-val').textContent=this.value"/>
+            </div>
+            <div class="score-item">
+              <div class="score-label-row">
+                <span>Raw Performance</span>
+                <span class="score-val" id="performance-val">5</span>
+              </div>
+              <input type="range" class="range-slider" min="1" max="10" value="5" id="score-performance"
+                     oninput="document.getElementById('performance-val').textContent=this.value"/>
+            </div>
+            <div class="score-item">
+              <div class="score-label-row">
+                <span>Design Work</span>
+                <span class="score-val" id="design-val">5</span>
+              </div>
+              <input type="range" class="range-slider" min="1" max="10" value="5" id="score-design"
+                     oninput="document.getElementById('design-val').textContent=this.value"/>
+            </div>
+          </div>
+
+          <!-- Pros / Cons / Tags -->
+          <h3 class="font-display" style="font-weight:700;margin:28px 0 20px;">Pros, Cons & Tags</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Pros (one per line)</label>
+              <textarea id="fPros" rows="4" placeholder="Incredible battery life&#10;Silent fanless design&#10;Best-in-class efficiency"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Cons (one per line)</label>
+              <textarea id="fCons" rows="4" placeholder="No gaming GPU&#10;Expensive for Indian market&#10;Limited ports"></textarea>
+            </div>
+            <div class="form-group full-width">
+              <label>Tags (comma separated)</label>
+              <input type="text" id="fTags" placeholder="e.g. ultrabook, apple, student, coding, premium"/>
+              <small style="color:var(--text-muted);font-size:0.75rem;margin-top:6px;display:block">
+                Common tags: gaming, ultrabook, student, coding, editing, budget, midrange, premium, apple, dell, hp, lenovo, asus
+              </small>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button class="btn-admin btn-admin-ghost" onclick="resetForm();switchTab('laptops')">Cancel</button>
+            <button class="btn-admin btn-admin-primary" onclick="saveLaptop()">
+              <span id="saveBtnText">Save Laptop</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ ANALYTICS TAB ══ -->
+      <div class="section-tab" id="tab-analytics">
+        <div class="admin-page-header">
+          <div>
+            <div class="admin-page-title">Analytics</div>
+            <div class="admin-page-sub">Affiliate click tracking and top performers</div>
+          </div>
+        </div>
+        <div id="analyticsContent">
+          <div style="padding:40px;text-align:center;color:var(--text-muted)">Loading analytics...</div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Delete confirmation modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal">
+    <div class="modal-title">Delete Laptop?</div>
+    <p style="color:var(--text-secondary);font-size:0.9rem">
+      This will permanently remove the laptop from the database and all future recommendations. This cannot be undone.
+    </p>
+    <div class="modal-actions">
+      <button class="btn-admin btn-admin-ghost" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn-admin btn-admin-danger" id="confirmDeleteBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="../js/firebase-config.js"></script>
+<script>
+// ─────────────────────────────────────────────
+// AUTH GUARD — redirect if not logged in
+// ─────────────────────────────────────────────
+auth.onAuthStateChanged(user => {
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
+  document.getElementById("adminUserEmail").textContent = user.email;
+  loadLaptops();
+  loadOverviewStats();
+});
+
+function handleLogout() {
+  auth.signOut().then(() => window.location.href = "login.html");
+}
+
+// ─────────────────────────────────────────────
+// TAB SWITCHING
+// ─────────────────────────────────────────────
+function switchTab(tabId) {
+  document.querySelectorAll(".section-tab").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".admin-nav-item").forEach(n => n.classList.remove("active"));
+  document.getElementById(`tab-${tabId}`).classList.add("active");
+  document.querySelector(`[onclick="switchTab('${tabId}')"]`)?.classList.add("active");
+  if (tabId === "analytics") loadAnalytics();
+}
+
+// ─────────────────────────────────────────────
+// OVERVIEW STATS
+// ─────────────────────────────────────────────
+let allLaptops = [];
+
+async function loadOverviewStats() {
+  try {
+    const snap = await db.collection("laptops").get();
+    allLaptops = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const total = allLaptops.length;
+    const brands = [...new Set(allLaptops.map(l => l.brand).filter(Boolean))].length;
+    const avgPrice = total > 0 ? Math.round(allLaptops.reduce((s,l) => s + (l.price||0), 0) / total) : 0;
+    document.getElementById("statTotal").textContent = total;
+    document.getElementById("statBrands").textContent = brands;
+    document.getElementById("statAvgPrice").textContent = avgPrice > 0 ? `₹${(avgPrice/1000).toFixed(0)}K` : "—";
+    const clickSnap = await db.collection("clicks").get();
+    document.getElementById("statClicks").textContent = clickSnap.size;
+    document.getElementById("laptopCountLabel").textContent = `${total} laptops in database`;
+    renderTable(allLaptops);
+  } catch(e) {
+    console.error(e);
+    document.getElementById("statTotal").textContent = "N/A";
+  }
+}
+
+// ─────────────────────────────────────────────
+// LOAD & RENDER LAPTOPS TABLE
+// ─────────────────────────────────────────────
+async function loadLaptops() {
+  try {
+    const snap = await db.collection("laptops").orderBy("name").get();
+    allLaptops = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderTable(allLaptops);
+    document.getElementById("laptopCountLabel").textContent = `${allLaptops.length} laptops in database`;
+  } catch(e) {
+    console.error("Firestore error:", e);
+    document.getElementById("laptopTableBody").innerHTML =
+      `<tr><td colspan="8" style="text-align:center;padding:40px;color:#e07e7e">
+        Error loading. Check Firebase config & Firestore rules.
+      </td></tr>`;
+  }
+}
+
+function renderTable(laptops) {
+  const tbody = document.getElementById("laptopTableBody");
+  if (!laptops.length) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:60px;color:var(--text-muted)">
+      No laptops yet. <span style="color:var(--accent);cursor:pointer" onclick="switchTab('add')">Add your first laptop →</span>
+    </td></tr>`;
+    return;
+  }
+  tbody.innerHTML = laptops.map(l => `
+    <tr>
+      <td>
+        ${l.image
+          ? `<img src="${l.image}" class="laptop-thumb" alt="${l.name}" onerror="this.style.display='none'"/>`
+          : `<div style="width:48px;height:36px;background:var(--bg-secondary);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:1.2rem">💻</div>`}
+      </td>
+      <td><strong>${l.name || '—'}</strong></td>
+      <td>${l.brand || '—'}</td>
+      <td class="font-mono">₹${l.price ? (l.price/1000).toFixed(0)+'K' : '—'}</td>
+      <td><span class="score-badge">${l.scores?.gaming ?? '—'}/10</span></td>
+      <td><span class="score-badge">${l.scores?.battery ?? '—'}/10</span></td>
+      <td><span class="score-badge">${l.scores?.coding ?? '—'}/10</span></td>
+      <td style="display:flex;gap:8px;align-items:center">
+        <button class="edit-btn" onclick="editLaptop('${l.id}')">Edit</button>
+        <button class="delete-btn" onclick="openDeleteModal('${l.id}', '${(l.name||'').replace(/'/g,"\\'")}')">Delete</button>
+      </td>
+    </tr>
+  `).join("");
+}
+
+// ─────────────────────────────────────────────
+// SAVE LAPTOP (Add + Edit)
+// ─────────────────────────────────────────────
+async function saveLaptop() {
+  const name = document.getElementById("fName").value.trim();
+  const brand = document.getElementById("fBrand").value.trim();
+  const price = parseInt(document.getElementById("fPrice").value);
+  const link = document.getElementById("fLink").value.trim();
+
+  if (!name || !brand || !price || !link) {
+    showToast("Please fill in Name, Brand, Price, and Affiliate Link", "error");
+    return;
+  }
+
+  const savBtn = document.getElementById("saveBtnText");
+  savBtn.textContent = "Saving...";
+
+  const data = {
+    name, brand, price,
+    affiliateLink: link,
+    image: document.getElementById("fImage").value.trim(),
+    cpu:     document.getElementById("fCpu").value.trim(),
+    gpu:     document.getElementById("fGpu").value.trim(),
+    ram:     document.getElementById("fRam").value.trim(),
+    storage: document.getElementById("fStorage").value.trim(),
+    display: document.getElementById("fDisplay").value.trim(),
+    weight:  document.getElementById("fWeight").value.trim(),
+    pros: document.getElementById("fPros").value.split("\n").map(s=>s.trim()).filter(Boolean),
+    cons: document.getElementById("fCons").value.split("\n").map(s=>s.trim()).filter(Boolean),
+    tags: document.getElementById("fTags").value.split(",").map(s=>s.trim()).filter(Boolean),
+    scores: {
+      gaming:      parseInt(document.getElementById("score-gaming").value),
+      battery:     parseInt(document.getElementById("score-battery").value),
+      coding:      parseInt(document.getElementById("score-coding").value),
+      editing:     parseInt(document.getElementById("score-editing").value),
+      portability: parseInt(document.getElementById("score-portability").value),
+      student:     parseInt(document.getElementById("score-student").value),
+      performance: parseInt(document.getElementById("score-performance").value),
+      design:      parseInt(document.getElementById("score-design").value),
+    },
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+  };
+
+  try {
+    const editId = document.getElementById("editId").value;
+    if (editId) {
+      await db.collection("laptops").doc(editId).update(data);
+      showToast("✅ Laptop updated successfully!");
+    } else {
+      data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection("laptops").add(data);
+      showToast("✅ Laptop added successfully!");
+    }
+    resetForm();
+    switchTab("laptops");
+    loadLaptops();
+    loadOverviewStats();
+  } catch(e) {
+    console.error(e);
+    showToast("Error saving. Check console.", "error");
+  }
+  savBtn.textContent = "Save Laptop";
+}
+
+// ─────────────────────────────────────────────
+// EDIT — pre-fill form
+// ─────────────────────────────────────────────
+function editLaptop(id) {
+  const laptop = allLaptops.find(l => l.id === id);
+  if (!laptop) return;
+
+  document.getElementById("editId").value = id;
+  document.getElementById("formTitle").textContent = "Edit Laptop";
+  document.getElementById("saveBtnText").textContent = "Update Laptop";
+  document.getElementById("fName").value = laptop.name || "";
+  document.getElementById("fBrand").value = laptop.brand || "";
+  document.getElementById("fPrice").value = laptop.price || "";
+  document.getElementById("fLink").value = laptop.affiliateLink || "";
+  document.getElementById("fImage").value = laptop.image || "";
+  document.getElementById("fCpu").value = laptop.cpu || "";
+  document.getElementById("fGpu").value = laptop.gpu || "";
+  document.getElementById("fRam").value = laptop.ram || "";
+  document.getElementById("fStorage").value = laptop.storage || "";
+  document.getElementById("fDisplay").value = laptop.display || "";
+  document.getElementById("fWeight").value = laptop.weight || "";
+  document.getElementById("fPros").value = (laptop.pros || []).join("\n");
+  document.getElementById("fCons").value = (laptop.cons || []).join("\n");
+  document.getElementById("fTags").value = (laptop.tags || []).join(", ");
+
+  const scores = laptop.scores || {};
+  const scoreFields = ["gaming","battery","coding","editing","portability","student","performance","design"];
+  scoreFields.forEach(field => {
+    const slider = document.getElementById(`score-${field}`);
+    const display = document.getElementById(`${field}-val`);
+    if (slider && scores[field]) {
+      slider.value = scores[field];
+      if (display) display.textContent = scores[field];
+    }
+  });
+
+  if (laptop.image) previewImage(laptop.image);
+  switchTab("add");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function resetForm() {
+  document.getElementById("editId").value = "";
+  document.getElementById("formTitle").textContent = "Add New Laptop";
+  document.getElementById("saveBtnText").textContent = "Save Laptop";
+  ["fName","fBrand","fPrice","fLink","fImage","fCpu","fGpu","fRam","fStorage","fDisplay","fWeight","fPros","fCons","fTags"]
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ""; });
+  ["gaming","battery","coding","editing","portability","student","performance","design"].forEach(f => {
+    const s = document.getElementById(`score-${f}`);
+    const v = document.getElementById(`${f}-val`);
+    if (s) s.value = 5;
+    if (v) v.textContent = 5;
+  });
+  document.getElementById("imgPreview").classList.remove("visible");
+}
+
+// ─────────────────────────────────────────────
+// DELETE
+// ─────────────────────────────────────────────
+let pendingDeleteId = null;
+
+function openDeleteModal(id, name) {
+  pendingDeleteId = id;
+  document.querySelector(".modal .modal-title").textContent = `Delete "${name}"?`;
+  document.getElementById("deleteModal").classList.add("open");
+}
+function closeDeleteModal() {
+  pendingDeleteId = null;
+  document.getElementById("deleteModal").classList.remove("open");
+}
+document.getElementById("confirmDeleteBtn").onclick = async () => {
+  if (!pendingDeleteId) return;
+  try {
+    await db.collection("laptops").doc(pendingDeleteId).delete();
+    showToast("Laptop deleted.");
+    closeDeleteModal();
+    loadLaptops();
+    loadOverviewStats();
+  } catch(e) {
+    showToast("Error deleting.", "error");
+  }
+};
+
+// ─────────────────────────────────────────────
+// IMAGE PREVIEW
+// ─────────────────────────────────────────────
+function previewImage(url) {
+  const preview = document.getElementById("imgPreview");
+  if (!url) { preview.classList.remove("visible"); return; }
+  preview.src = url;
+  preview.onload = () => preview.classList.add("visible");
+  preview.onerror = () => preview.classList.remove("visible");
+}
+
+// ─────────────────────────────────────────────
+// ANALYTICS
+// ─────────────────────────────────────────────
+async function loadAnalytics() {
+  const container = document.getElementById("analyticsContent");
+  container.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-muted)">Loading...</div>`;
+  try {
+    const snap = await db.collection("clicks").orderBy("timestamp","desc").limit(100).get();
+    const clicks = snap.docs.map(d => d.data());
+
+    // Count by laptop name
+    const counts = {};
+    clicks.forEach(c => { counts[c.laptopName] = (counts[c.laptopName] || 0) + 1; });
+    const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]);
+
+    container.innerHTML = `
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Laptop</th>
+              <th>Affiliate Clicks</th>
+              <th>Click Share</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${sorted.length === 0
+              ? `<tr><td colspan="3" style="text-align:center;padding:40px;color:var(--text-muted)">No clicks yet. Once users start clicking Buy buttons, data appears here.</td></tr>`
+              : sorted.map(([name, count]) => `
+                <tr>
+                  <td><strong>${name}</strong></td>
+                  <td class="font-mono">${count}</td>
+                  <td>
+                    <div style="background:var(--border);height:6px;border-radius:100px;width:200px">
+                      <div style="background:var(--accent);height:100%;border-radius:100px;width:${Math.round((count/clicks.length)*100)}%"></div>
+                    </div>
+                  </td>
+                </tr>`).join("")}
+          </tbody>
+        </table>
+      </div>
+      <p style="margin-top:16px;font-size:0.8rem;color:var(--text-muted)">
+        Showing last 100 click events. Total: <strong>${clicks.length}</strong> clicks.
+      </p>`;
+  } catch(e) {
+    container.innerHTML = `<div style="color:#e07e7e;padding:20px">Error loading analytics. Check Firestore rules.</div>`;
+  }
+}
+
+// ─────────────────────────────────────────────
+// TOAST
+// ─────────────────────────────────────────────
+function showToast(msg, type = "success") {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = `toast toast-${type} show`;
+  setTimeout(() => t.classList.remove("show"), 3500);
+}
+</script>
+</body>
+</html>
