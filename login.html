@@ -84,16 +84,33 @@
       if (e.key === "Enter") handleLogin();
     });
 
-    async function handleLogin() {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value;
-      const btn = document.getElementById("loginBtn");
-      const errorEl = document.getElementById("loginError");
+  <script>
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter") handleLogin();
+});
 
-      if (!email || !password) {
-        showError("Please enter email and password.");
-        return;
-      }
+function handleLogin() {
+
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+
+  const ADMIN_EMAIL = atob("YWRtaW5AYWV0aGVyaXguY29t");
+  const ADMIN_PASSWORD = atob("QWV0aGVyaXhAMjAyNg==");
+
+  if (
+    email === ADMIN_EMAIL &&
+    password === ADMIN_PASSWORD
+  ) {
+
+    localStorage.setItem("admin_access", "granted");
+
+    window.location.href = "dashboard.html";
+
+  } else {
+    alert("Invalid credentials");
+  }
+}
+</script>
 
       btn.disabled = true;
       btn.textContent = "Signing in...";
