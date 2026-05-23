@@ -6,12 +6,13 @@
 // ============================================================
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY_HERE",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyCDb53qpAycW4ezUoRyYrD7xZHiu0ow1MM",
+  authDomain: "laptoplens-52b08.firebaseapp.com",
+  projectId: "laptoplens-52b08",
+  storageBucket: "laptoplens-52b08.firebasestorage.app",
+  messagingSenderId: "722337025641",
+  appId: "1:722337025641:web:c1f1959ec1f52c5e5a1cf8",
+  measurementId: "G-B48515XB0Q"
 };
 
 // Initialize Firebase
