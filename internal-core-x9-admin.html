@@ -6,9 +6,6 @@
   <title>LaptopLens Admin — Dashboard</title>
   <meta name="robots" content="noindex, nofollow"/>
   <link rel="stylesheet" href="style.css"/>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <style>
     body { overflow: hidden; }
     .admin-layout { height: 100vh; }
@@ -367,26 +364,26 @@ if(localStorage.getItem("admin_access") !== "granted"){
 </div>
 
 <div class="toast" id="toast"></div>
-
 <script src="firebase-config.js"></script>
+  
 <script>
-// ─────────────────────────────────────────────
-// AUTH GUARD — redirect if not logged in
-// ─────────────────────────────────────────────
-auth.onAuthStateChanged(user => {
-  if (!user) {
-    window.location.href = "login.html";
-    return;
-  }
-  document.getElementById("adminUserEmail").textContent = user.email;
-  loadLaptops();
-  loadOverviewStats();
-});
-
-function handleLogout() {
-  auth.signOut().then(() => window.location.href = "login.html");
+// SECURITY CHECK
+if(localStorage.getItem("admin_access") !== "granted"){
+   window.location.href = "/";
 }
 
+// LOAD DATA
+loadLaptops();
+loadOverviewStats();
+
+// FAKE ADMIN EMAIL DISPLAY
+document.getElementById("adminUserEmail").textContent = "Admin Access";
+
+// LOGOUT
+function handleLogout() {
+   localStorage.removeItem("admin_access");
+   window.location.href = "login";
+}
 // ─────────────────────────────────────────────
 // TAB SWITCHING
 // ─────────────────────────────────────────────
